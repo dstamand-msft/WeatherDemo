@@ -31,7 +31,8 @@ stages:
         # using coverlet as I'm building on Linux
         arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura'
         publishTestResults: true
-    - task: reportgenerator@4
+    # requires https://github.com/danielpalme/ReportGenerator
+    - task: reportgenerator@5
       displayName: 'Merge code coverage reports'
       inputs:
         reports: '$(Agent.TempDirectory)/**/coverage.cobertura.xml'
