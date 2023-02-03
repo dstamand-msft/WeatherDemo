@@ -47,9 +47,3 @@ stages:
         arguments: '--output $(Build.ArtifactStagingDirectory)'
         zipAfterPublish: true
         modifyOutputPath: true
-        # ms tenant auto-injected policy
-    - task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
-      displayName: 'Component Detection'
-      inputs:
-        failOnAlert: false
-        skipComponentGovernanceDetection: true
