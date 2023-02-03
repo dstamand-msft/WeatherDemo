@@ -38,7 +38,7 @@ stages:
         summaryFileLocation: '$(Agent.TempDirectory)/**/coverage.cobertura.xml'
     - task: DotNetCoreCLI@2
       name: publishWeb
-      displayName: 'Build Web'
+      displayName: 'Publish'
       inputs:
         command: publish
         publishWebProjects: false
@@ -47,3 +47,9 @@ stages:
         arguments: '--output $(Build.ArtifactStagingDirectory)'
         zipAfterPublish: true
         modifyOutputPath: true
+        # ms tenant auto-injected policy
+    - task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
+      displayName: 'Component Detection'
+      inputs:
+        failOnAlert: false
+        skipComponentGovernanceDetection: true
