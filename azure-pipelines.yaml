@@ -36,16 +36,21 @@ stages:
       displayName: 'Merge code coverage reports'
       inputs:
         reports: '$(Agent.TempDirectory)/**/coverage.cobertura.xml'
-        targetdir: '$(Pipeline.Workspace)/coverlet'
-        reporttypes: 'Cobertura'
+        targetdir: '$(Pipeline.Workspace)/codecoverage'
+        reporttypes: 'HtmlInline_AzurePipelines;Cobertura'
         verbosity: 'Verbose'
     - task: PublishCodeCoverageResults@1
       displayName: 'Publish code coverage report'
       inputs:
         codeCoverageTool: 'Cobertura'
-        summaryFileLocation: '$(Pipeline.Workspace)/coverlet/Cobertura.xml'
+        summaryFileLocation: '$(Pipeline.Workspace)/codecoverage/Cobertura.xml'
+        pathToSources: '$(Build.SourcesDirectory)/src'
+        reportDirectory: '$(Pipeline.Workspace)/codecoverage'
+        failIfCoverageEmpty: true
+      env:
+        DISABLE_COVERAGE_AUTOGENERATE: 'true'
     - task: DotNetCoreCLI@2
-      name: publishWeb
+      name: publish
       displayName: 'Publish'
       inputs:
         command: publish
@@ -55,3 +60,9 @@ stages:
         arguments: '--output $(Build.ArtifactStagingDirectory)'
         zipAfterPublish: true
         modifyOutputPath: true
+    - task: PublishPipelineArtifact@1
+      displayName: Publish deployable artifacts
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)'
+        parallel: true
+        artifactName: 'drop'
