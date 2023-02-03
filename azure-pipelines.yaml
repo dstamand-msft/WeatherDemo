@@ -1,0 +1,49 @@
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+- name: buildConfiguration
+  value: Release
+
+name: $(Build.SourceBranchName)-$(Date:yyyyMMdd)$(Rev:.r)
+stages:
+- stage: buildStage
+  displayName: 'Build'
+  jobs:
+  - job: buildJob
+    displayName: 'Build jobs'
+    workspace:
+      clean: all
+    steps:
+    - task: DotNetCoreCLI@2
+      name: buildWeb
+      displayName: 'Build Web'
+      inputs:
+        command: build
+        projects: 'src/WeatherDemo/WeatherDemo.csproj'
+        configuration: $(buildConfiguration)
+    - task: DotNetCoreCLI@2
+      name: test
+      displayName: 'Test'
+      inputs:
+        command: test
+        projects: 'tests/**/*.csproj'
+        # using coverlet as I'm building on Linux
+        arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura'
+        publishTestResults: true
+    - task: PublishCodeCoverageResults@1
+      displayName: 'Publish code coverage report'
+      inputs:
+        codeCoverageTool: 'Cobertura'
+        summaryFileLocation: '$(Agent.TempDirectory)/**/coverage.cobertura.xml'
+    - task: DotNetCoreCLI@2
+      name: publishWeb
+      displayName: 'Build Web'
+      inputs:
+        command: publish
+        publishWebProjects: false
+        projects: 'src/WeatherDemo/WeatherDemo.csproj'
+        configuration: $(buildConfiguration)
+        arguments: '--output $(Build.ArtifactStagingDirectory)'
+        zipAfterPublish: true
+        modifyOutputPath: true
