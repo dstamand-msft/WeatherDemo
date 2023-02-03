@@ -32,7 +32,7 @@ public class WeatherService : IWeatherService
             TemperatureC = response.Current.TempC,
             TemperatureFeelsLikeC = response.Current.FeelslikeC,
             TimeZoneId = response.Location.TzId,
-            LastUpdated = response.Current.LastUpdatedEpoch.FromUnixTimeToLocalDateTime()
+            LastUpdated = response.Current.LastUpdatedEpoch.FromUnixTimeToUtcDateTime()
         };
 
         return forecast;
