@@ -2,6 +2,7 @@ trigger:
   branches:
     include:
     - main
+    - feature/ci-trigger-check
 
 pool:
   vmImage: 'ubuntu-latest'
