@@ -11,6 +11,7 @@ variables:
 - name: buildConfiguration
   value: Release
 
+# this is a comment
 name: $(Build.SourceBranchName)-$(Date:yyyyMMdd)$(Rev:.r)
 stages:
 - stage: buildStage
