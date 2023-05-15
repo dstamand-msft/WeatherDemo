@@ -1,0 +1,97 @@
+trigger:
+  branches:
+    include:
+    - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+- name: buildConfiguration
+  value: Release
+
+name: $(Build.SourceBranchName)-$(Date:yyyyMMdd)$(Rev:.r)
+stages:
+- stage: buildStage
+  displayName: 'Build'
+  jobs:
+  - job: buildJob
+    displayName: 'Build jobs'
+    workspace:
+      clean: all
+    steps:
+    - task: Docker@2
+      name: buildTests
+      displayName: 'BuildTests'
+      inputs:
+        command: build
+        Dockerfile: $(Build.SourcesDirectory)/Dockerfile
+        arguments: '--target tests'
+        repository: weatherapidemo
+        tags: |
+          tests
+    - task: PowerShell@2
+      name: tests
+      displayName: 'Tests'
+      inputs:
+        pwsh: true
+        targetType: inline
+        script: |
+          docker run --rm -v $(Agent.TempDirectory):/testsresults --name weatherapidemotests weatherapidemo:tests
+    - task: Docker@2
+      name: build
+      displayName: 'Build'
+      inputs:
+        command: build
+        Dockerfile: $(Build.SourcesDirectory)/Dockerfile
+        repository: weatherapidemo
+        tags: |
+          dev
+    # DotNetCoreCLI@2 test task publish test results by default. Here we doing everything manually.
+    - task: PublishTestResults@2
+      name: publishTestResults
+      displayName: 'Publish test results'
+      inputs:
+        testRunner: VSTest
+        testResultsFiles: '$(Agent.TempDirectory)/*.trx'
+        failTaskOnFailedTests: true
+    # requires https://github.com/danielpalme/ReportGenerator
+    - task: reportgenerator@5
+      displayName: 'Merge code coverage reports'
+      inputs:
+        reports: '$(Agent.TempDirectory)/**/coverage.cobertura.xml'
+        targetdir: '$(Pipeline.Workspace)/codecoverage'
+        reporttypes: 'HtmlInline_AzurePipelines;Cobertura'
+        verbosity: 'Verbose'
+    - task: PublishCodeCoverageResults@1
+      displayName: 'Publish code coverage report'
+      inputs:
+        codeCoverageTool: 'Cobertura'
+        summaryFileLocation: '$(Pipeline.Workspace)/codecoverage/Cobertura.xml'
+        pathToSources: '$(Build.SourcesDirectory)/src'
+        reportDirectory: '$(Pipeline.Workspace)/codecoverage'
+        failIfCoverageEmpty: true
+      env:
+        DISABLE_COVERAGE_AUTOGENERATE: 'true'
+    - task: PowerShell@2
+      name: saveImage
+      displayName: 'Save image'
+      inputs:
+        pwsh: true
+        targetType: inline
+        script: |
+            docker save weatherapidemo:dev | gzip > $(Build.ArtifactStagingDirectory)/weatherapidemo-dev.tar.gz
+    - task: PowerShell@2
+      name: cleanupImages
+      displayName: 'Cleanup images'
+      inputs:
+        pwsh: true
+        targetType: inline
+        script: |
+            docker image rm weatherapidemo:tests weatherapidemo:dev
+    - task: PublishPipelineArtifact@1
+      displayName: Publish deployable artifacts
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)'
+        parallel: true
+        artifactName: 'drop'
