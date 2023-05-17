@@ -60,6 +60,7 @@ stages:
       displayName: 'Merge code coverage reports'
       inputs:
         reports: '$(Agent.TempDirectory)/**/coverage.cobertura.xml'
+        sourcedirs: '$(Build.SourcesDirectory)/src'
         targetdir: '$(Pipeline.Workspace)/codecoverage'
         reporttypes: 'HtmlInline_AzurePipelines;Cobertura'
         verbosity: 'Verbose'
