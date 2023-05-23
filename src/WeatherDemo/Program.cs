@@ -1,5 +1,7 @@
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using WeatherDemo.Clients;
+using WeatherDemo.DAL;
 using WeatherDemo.Services;
 
 namespace WeatherDemo
@@ -23,6 +25,8 @@ namespace WeatherDemo
             builder.Services.AddSwaggerGen();
 
             builder.Services.AddHttpClient<IWeatherAPIHttpClient,WeatherAPIHttpClient>((client, provider) => new WeatherAPIHttpClient(provider.GetRequiredService<IOptions<WeatherAPIOptions>>().Value.APIKey, client));
+
+            builder.Services.AddDbContext<WeatherDemoDbContext>((sp, options) => options.UseSqlServer(sp.GetRequiredService<IConfiguration>().GetConnectionString("Db")));
 
             var app = builder.Build();
 
