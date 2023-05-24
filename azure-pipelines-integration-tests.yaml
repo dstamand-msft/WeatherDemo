@@ -21,6 +21,7 @@ resources:
     env:
       ACCEPT_EULA: Y
       MSSQL_SA_PASSWORD: +6#wcbB7HaB#xeEn
+    options: --user 0:0
 
 pool:
   vmImage: 'ubuntu-latest'
