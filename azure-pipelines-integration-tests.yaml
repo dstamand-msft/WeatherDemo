@@ -51,8 +51,6 @@ stages:
         command: build
         projects: 'src/WeatherDemo/WeatherDemo.csproj'
         configuration: $(buildConfiguration)
-    # sqlcmd install procedures are here:
-    # https://learn.microsoft.com/en-us/sql/linux/sql-server-linux-setup-tools?view=sql-server-ver16&tabs=ubuntu-install%2Credhat-offline
     - task: Bash@3
       name: waitForDbReadiness
       displayName: 'Wait for DB readiness'
@@ -61,14 +59,10 @@ stages:
       inputs:
         targetType: inline
         script: |
-          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
-          curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
-          sudo apt-get update
-          sudo apt-get install mssql-tools unixodbc-dev
           for i in {1..50};
           do
-            # since we're not running inside a job container, we can reach the services by localhost instead
-            /opt/mssql-tools/bin/sqlcmd -S localhost,1433 -U sa -P $(saPassword) -Q "SELECT TOP 1 1 FROM dbo.WeatherHistory" 
+            # since we're not running inside a job container, we can reach the services by their services name instead
+            /opt/mssql-tools/bin/sqlcmd -S sqlserverweatherdemo -U sa -P $(saPassword) -Q "SELECT TOP 1 1 FROM dbo.WeatherHistory" 
             if [ $? -eq 0 ]
             then
                 echo "DB ready"
