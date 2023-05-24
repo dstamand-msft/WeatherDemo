@@ -10,6 +10,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "assets", "assets", "{0751CB84-E2DE-4D66-9538-0B1F1B8A716D}"
 	ProjectSection(SolutionItems) = preProject
 		azure-pipelines-docker.yaml = azure-pipelines-docker.yaml
+		azure-pipelines-integration-tests.yaml = azure-pipelines-integration-tests.yaml
 		azure-pipelines.yaml = azure-pipelines.yaml
 		Directory.Build.props = Directory.Build.props
 		Dockerfile = Dockerfile
