@@ -9,6 +9,7 @@ resources:
     image: mcr.microsoft.com/mssql/server:2022-latest
     ports:
     - 14333:1433
+    options: --user 0:0
     env:
       ACCEPT_EULA: Y
       MSSQL_SA_PASSWORD: +6#wcbB7HaB#xeEn
