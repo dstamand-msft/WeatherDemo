@@ -87,7 +87,6 @@ stages:
       inputs:
         command: test
         projects: 'tests/**/*.csproj'
-        # using coverlet as I'm building on Linux
         arguments: '--configuration $(buildConfiguration) --filter Category=Integration'
         publishTestResults: true
     - task: DotNetCoreCLI@2
