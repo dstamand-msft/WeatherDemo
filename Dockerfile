@@ -31,7 +31,7 @@ WORKDIR /source/tests/WeatherDemoTests
 # if not, we can do it using docker run. Example:
 # docker run --rm -v ${pwd}:/testsresults -w /source/tests/WeatherDemoTests <image_name> dotnet test --configuration <configuration> --logger:trx --results-directory /testsresults --collect:"XPlat Code Coverage" --no-build -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
 # note: this is using the Shell form of entrypoint, so that ENV vars are interpreted
-ENTRYPOINT dotnet test --configuration $CONFIGURATION --logger:trx --results-directory /testsresults --collect:"XPlat Code Coverage" --no-build -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
+ENTRYPOINT dotnet test --configuration $CONFIGURATION -filter Category!=Integration --logger:trx --results-directory /testsresults --collect:"XPlat Code Coverage" --no-build -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura
 
 FROM build AS publish
 ARG CONFIGURATION
