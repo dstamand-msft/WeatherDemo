@@ -15,7 +15,7 @@ public class WeatherForecastControllerTests : IClassFixture<TestWebApplicationFa
         _httpClient = factory.CreateClient();
     }
 
-    [Theory]
+    [Theory("Integration")]
     [InlineData("Montreal")]
     [Trait("Category", "Integration")]
     public async Task get_city_from_history_should_return_the_expected_result(string city)

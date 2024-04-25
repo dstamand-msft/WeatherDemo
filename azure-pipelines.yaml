@@ -34,7 +34,7 @@ stages:
         command: test
         projects: 'tests/**/*.csproj'
         # using coverlet as I'm building on Linux
-        arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura'
+        arguments: '--configuration $(buildConfiguration) --filter Category!=Integration --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura'
         publishTestResults: true
     # requires https://github.com/danielpalme/ReportGenerator
     - task: reportgenerator@5
