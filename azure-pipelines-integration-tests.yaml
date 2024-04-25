@@ -1,0 +1,108 @@
+trigger:
+  branches:
+    include:
+    - main
+
+resources:
+  containers:
+  - container: sqlserver
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+    - 14333:1433
+    # run as root as ADO creates users in the passwd file
+    options: --user 0:0
+    env:
+      ACCEPT_EULA: Y
+      MSSQL_SA_PASSWORD: +6#wcbB7HaB#xeEn
+  - container: sqlserverweatherdemo
+    image: crdommsftdemos.azurecr.io/sqlserver/weatherdemo:2022-latest
+    endpoint: acr-dommsftdemos
+    ports:
+    - 1433:1433
+    env:
+      ACCEPT_EULA: Y
+      MSSQL_SA_PASSWORD: +6#wcbB7HaB#xeEn
+    # run as root as ADO creates users in the passwd file
+    options: --user 0:0
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+- name: buildConfiguration
+  value: Release
+- name: saPassword
+  value: +6#wcbB7HaB#xeEn
+
+name: $(Build.SourceBranchName)-$(Date:yyyyMMdd)$(Rev:.r)
+stages:
+- stage: buildStage
+  displayName: 'Build'
+  jobs:
+  - job: buildJob
+    displayName: 'Build jobs'
+    workspace:
+      clean: all
+    services:
+      sqlserverweatherdemo: sqlserverweatherdemo
+    steps:
+    - task: DotNetCoreCLI@2
+      name: build
+      displayName: 'Build'
+      inputs:
+        command: build
+        projects: 'src/WeatherDemo/WeatherDemo.csproj'
+        configuration: $(buildConfiguration)
+    - task: Bash@3
+      name: waitForDbReadiness
+      displayName: 'Wait for DB readiness'
+      target:
+        container: sqlserver
+      inputs:
+        targetType: inline
+        script: |
+          for i in {1..50};
+          do
+            # since we're not running inside a job container, we can reach the services by their services name instead
+            /opt/mssql-tools/bin/sqlcmd -S sqlserverweatherdemo -U sa -P $(saPassword) -Q "SELECT TOP 1 1 FROM dbo.WeatherHistory" 
+            if [ $? -eq 0 ]
+            then
+                echo "DB ready"
+                break
+            else
+                echo "not ready yet..."
+                sleep 1
+            fi
+          done
+    - task: Bash@3
+      name: setEnvVars
+      displayName: 'Set environment variables'
+      inputs:
+        targetType: inline
+        script: |
+          echo "##vso[task.setvariable variable=ConnectionStrings__Db]Server=localhost;Database=WeatherDemo;User Id=sa;Password=$(saPassword);" 
+    - task: DotNetCoreCLI@2
+      name: test
+      displayName: 'Test'
+      inputs:
+        command: test
+        projects: 'tests/**/*.csproj'
+        arguments: '--configuration $(buildConfiguration) --filter Category=Integration'
+        publishTestResults: true
+    - task: DotNetCoreCLI@2
+      name: publish
+      displayName: 'Publish'
+      inputs:
+        command: publish
+        publishWebProjects: false
+        projects: 'src/WeatherDemo/WeatherDemo.csproj'
+        configuration: $(buildConfiguration)
+        arguments: '--output $(Build.ArtifactStagingDirectory)'
+        zipAfterPublish: true
+        modifyOutputPath: true
+    - task: PublishPipelineArtifact@1
+      displayName: Publish deployable artifacts
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)'
+        parallel: true
+        artifactName: 'drop'

@@ -7,9 +7,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WeatherDemo", "src\WeatherD
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WeatherDemoTests", "tests\WeatherDemoTests\WeatherDemoTests.csproj", "{92863BCE-860A-4F07-B3E0-7481ED488252}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pipelines", "pipelines", "{0751CB84-E2DE-4D66-9538-0B1F1B8A716D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "assets", "assets", "{0751CB84-E2DE-4D66-9538-0B1F1B8A716D}"
 	ProjectSection(SolutionItems) = preProject
 		azure-pipelines-docker.yaml = azure-pipelines-docker.yaml
+		azure-pipelines-integration-tests.yaml = azure-pipelines-integration-tests.yaml
 		azure-pipelines.yaml = azure-pipelines.yaml
 		Directory.Build.props = Directory.Build.props
 		Dockerfile = Dockerfile
