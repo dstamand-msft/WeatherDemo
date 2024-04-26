@@ -88,6 +88,8 @@ stages:
   displayName: 'Deploy'
   dependsOn: buildStage
   jobs:
+  - job: deployJob
+    displayName: 'Deploy Database'
     steps:
     - task: DownloadPipelineArtifact@2
       displayName: 'Download deployable artifacts'
@@ -96,6 +98,7 @@ stages:
         artifactName: 'drop'
         targetPath: '$(System.DefaultWorkingDirectory)/drop'
     - task: SqlAzureDacpacDeployment@1
+      name: generateSqlScript
       displayName: 'Generate SQL script'
       inputs:
         azureSubscription: $(AzureServiceConnection)
@@ -138,3 +141,11 @@ stages:
               AdditionalArguments: '/p:BlockOnPossibleDataLoss=false'
               IpDetectionMethod: 'AutoDetect'
               TaskTimeoutInMinutes: 120
+  - job: deployJob
+    displayName: 'Deploy App'
+    steps:
+    - task: CmdLine@2
+      name: deployApp
+      displayName: 'Deploy App'
+      inputs:
+        script: 'echo "Deploy app occurs here..."'
