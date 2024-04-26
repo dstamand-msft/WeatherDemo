@@ -88,8 +88,8 @@ stages:
   displayName: 'Deploy'
   dependsOn: buildStage
   jobs:
-  - job: deployJob
-    displayName: 'Deploy Database'
+  - job: prepareDatabaseScript
+    displayName: 'Prepare Database script'
     steps:
     - task: DownloadPipelineArtifact@2
       displayName: 'Download deployable artifacts'
@@ -142,7 +142,7 @@ stages:
             AdditionalArguments: '/p:BlockOnPossibleDataLoss=false'
             IpDetectionMethod: 'AutoDetect'
             TaskTimeoutInMinutes: 120
-  - job: deployJob
+  - job: deployApp
     displayName: 'Deploy App'
     steps:
     - task: CmdLine@2
