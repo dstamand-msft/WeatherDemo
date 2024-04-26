@@ -118,6 +118,8 @@ stages:
         artifactName: 'drop'
     - task: ManualValidation@0
       displayName: 'Validate SQL script'
+      timeoutInMinutes: 1440 # task times out in 1 day
+      pool: server
       inputs:
         # This task input is required, but you can specify an empty string if you don't want to notify anyone.
         # see https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/manual-validation-v0?view=azure-pipelines
