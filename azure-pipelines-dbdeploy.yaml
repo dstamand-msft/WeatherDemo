@@ -130,6 +130,7 @@ stages:
     strategy:
      runOnce:
       deploy:
+        steps:
         - task: SqlAzureDacpacDeployment@1
           displayName: 'Deploy DACPAC'
           inputs:
