@@ -1,0 +1,139 @@
+trigger: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+- name: buildConfiguration
+  value: Release
+
+name: $(Build.SourceBranchName)-$(Date:yyyyMMdd)$(Rev:.r)
+stages:
+- stage: buildStage
+  displayName: 'Build'
+  jobs:
+  - job: buildJob
+    displayName: 'Build jobs'
+    workspace:
+      clean: all
+    steps:
+    - task: DotNetCoreCLI@2
+      name: build
+      displayName: 'Build'
+      inputs:
+        command: build
+        projects: 'src/WeatherDemo/WeatherDemo.csproj'
+        configuration: $(buildConfiguration)
+    - task: MSBuild@1
+      name: buildDb
+      displayName: 'Build'
+      inputs:
+        solution: 'src/WeatherDemo.Database/WeatherDemo.Database.sqlproj'
+        configuration: $(buildConfiguration)
+    - task: DotNetCoreCLI@2
+      name: test
+      displayName: 'Test'
+      inputs:
+        command: test
+        projects: 'tests/**/*.csproj'
+        # using coverlet as I'm building on Linux
+        arguments: '--configuration $(buildConfiguration) --filter Category!=Integration --collect:"XPlat Code Coverage" -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=cobertura'
+        publishTestResults: true
+    # requires https://github.com/danielpalme/ReportGenerator
+    - task: reportgenerator@5
+      displayName: 'Merge code coverage reports'
+      inputs:
+        reports: '$(Agent.TempDirectory)/**/coverage.cobertura.xml'
+        targetdir: '$(Pipeline.Workspace)/codecoverage'
+        reporttypes: 'HtmlInline_AzurePipelines;Cobertura'
+        verbosity: 'Verbose'
+    - task: PublishCodeCoverageResults@1
+      displayName: 'Publish code coverage report'
+      inputs:
+        codeCoverageTool: 'Cobertura'
+        summaryFileLocation: '$(Pipeline.Workspace)/codecoverage/Cobertura.xml'
+        pathToSources: '$(Build.SourcesDirectory)/src'
+        reportDirectory: '$(Pipeline.Workspace)/codecoverage'
+        failIfCoverageEmpty: true
+      env:
+        DISABLE_COVERAGE_AUTOGENERATE: 'true'
+    - task: DotNetCoreCLI@2
+      name: publish
+      displayName: 'Publish'
+      inputs:
+        command: publish
+        publishWebProjects: false
+        projects: 'src/WeatherDemo/WeatherDemo.csproj'
+        configuration: $(buildConfiguration)
+        arguments: '--output $(Build.ArtifactStagingDirectory)'
+        zipAfterPublish: true
+        modifyOutputPath: true
+    # see https://learn.microsoft.com/en-us/sql/tools/sqlpackage/sqlpackage-download?view=sql-server-ver16 on ways to install it
+    - task: CopyFiles@2
+      name: copyDacpac
+      displayName: 'Copy DACPAC'
+      inputs:
+        CleanTargetFolder: false
+        SourceFolder: '$(Build.SourcesDirectory)/src/WeatherDemo.Database/bin/$(buildConfiguration)'
+        Contents: '*.dacpac'
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish deployable artifacts'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)'
+        parallel: true
+        artifactName: 'drop'
+- stage: deployStage
+  displayName: 'Deploy'
+  dependsOn: buildStage
+  jobs:
+    steps:
+    - task: DownloadPipelineArtifact@2
+      displayName: 'Download deployable artifacts'
+      inputs:
+        buildType: 'current'
+        artifactName: 'drop'
+        targetPath: '$(System.DefaultWorkingDirectory)/drop'
+    - task: SqlAzureDacpacDeployment@1
+      displayName: 'Generate SQL script'
+      inputs:
+        azureSubscription: $(AzureServiceConnection)
+        AuthenticationType: servicePrincipal
+        ServerName: $(DatabaseServerName)
+        DatabaseName: $(DatabaseName)
+        DeploymentAction: Script
+        DacpacFile:  '$(System.DefaultWorkingDirectory)/drop/WeatherDemo.Database.sql'
+        #AdditionalArguments: '/p:ExcludeObjectTypes=Users;Logins;RoleMembership;Permissions /p:ScriptDatabaseOptions=false /OutputPath:"$(Build.ArtifactStagingDirectory)"'
+        AdditionalArguments: '/p:ScriptDatabaseOptions=false /OutputPath:"$(Build.ArtifactStagingDirectory)"'
+        TaskTimeoutInMinutes: 120
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish SQL script to artifacts'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)'
+        parallel: true
+        artifactName: 'drop'
+    - task: ManualValidation@0
+      displayName: 'Validate SQL script'
+      inputs:
+        # This task input is required, but you can specify an empty string if you don't want to notify anyone.
+        # see https://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/reference/manual-validation-v0?view=azure-pipelines
+        notifyUsers: ''
+        instructions: 'Please validate the SQL deployment script'
+        onTimeout: 'reject'
+    - deployment: deployDb
+      displayName: 'Deploy database'
+      environment: 'Prod-DB'
+      strategy:
+       runOnce:
+        deploy:
+          - task: SqlAzureDacpacDeployment@1
+            displayName: 'Deploy DACPAC'
+            inputs:
+              azureSubscription: $(AzureServiceConnection)
+              AuthenticationType: servicePrincipal
+              ServerName: $(DatabaseServerName)
+              DatabaseName: $(DatabaseName)
+              DacpacFile: '$(System.DefaultWorkingDirectory)/drop/WeatherDemo.Database.dacpac'
+              AdditionalArguments: '/p:BlockOnPossibleDataLoss=false'
+              IpDetectionMethod: 'AutoDetect'
+              TaskTimeoutInMinutes: 120
