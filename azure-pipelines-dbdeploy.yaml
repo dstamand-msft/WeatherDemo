@@ -124,23 +124,23 @@ stages:
         notifyUsers: ''
         instructions: 'Please validate the SQL deployment script'
         onTimeout: 'reject'
-    - deployment: deployDb
-      displayName: 'Deploy database'
-      environment: 'Prod-DB'
-      strategy:
-       runOnce:
-        deploy:
-          - task: SqlAzureDacpacDeployment@1
-            displayName: 'Deploy DACPAC'
-            inputs:
-              azureSubscription: $(AzureServiceConnection)
-              AuthenticationType: servicePrincipal
-              ServerName: $(DatabaseServerName)
-              DatabaseName: $(DatabaseName)
-              DacpacFile: '$(System.DefaultWorkingDirectory)/drop/WeatherDemo.Database.dacpac'
-              AdditionalArguments: '/p:BlockOnPossibleDataLoss=false'
-              IpDetectionMethod: 'AutoDetect'
-              TaskTimeoutInMinutes: 120
+  - deployment: deployDb
+    displayName: 'Deploy database'
+    environment: 'Prod-DB'
+    strategy:
+     runOnce:
+      deploy:
+        - task: SqlAzureDacpacDeployment@1
+          displayName: 'Deploy DACPAC'
+          inputs:
+            azureSubscription: $(AzureServiceConnection)
+            AuthenticationType: servicePrincipal
+            ServerName: $(DatabaseServerName)
+            DatabaseName: $(DatabaseName)
+            DacpacFile: '$(System.DefaultWorkingDirectory)/drop/WeatherDemo.Database.dacpac'
+            AdditionalArguments: '/p:BlockOnPossibleDataLoss=false'
+            IpDetectionMethod: 'AutoDetect'
+            TaskTimeoutInMinutes: 120
   - job: deployJob
     displayName: 'Deploy App'
     steps:
