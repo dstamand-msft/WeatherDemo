@@ -116,6 +116,11 @@ stages:
         targetPath: '$(Build.ArtifactStagingDirectory)'
         parallel: true
         artifactName: 'drop'
+  - job: getValidation
+    displayName: 'Get validation'
+    pool: server
+    dependsOn: prepareDatabaseScript
+    steps:
     - task: ManualValidation@0
       displayName: 'Validate SQL script'
       timeoutInMinutes: 1440 # task times out in 1 day
