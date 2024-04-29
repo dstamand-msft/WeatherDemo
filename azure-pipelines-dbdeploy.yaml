@@ -1,7 +1,7 @@
 trigger: none
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'windows-latest'
 
 variables:
 - group: WeatherDemo
@@ -20,14 +20,14 @@ stages:
     steps:
     - task: DotNetCoreCLI@2
       name: build
-      displayName: 'Build'
+      displayName: 'Build Code'
       inputs:
         command: build
         projects: 'src/WeatherDemo/WeatherDemo.csproj'
         configuration: $(buildConfiguration)
     - task: MSBuild@1
       name: buildDb
-      displayName: 'Build'
+      displayName: 'Build DB'
       inputs:
         solution: 'src/WeatherDemo.Database/WeatherDemo.Database.sqlproj'
         configuration: $(buildConfiguration)
