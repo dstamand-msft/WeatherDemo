@@ -108,14 +108,14 @@ stages:
         DatabaseName: $(DatabaseName)
         DeploymentAction: Script
         DacpacFile:  '$(Pipeline.Workspace)/drop/WeatherDemo.Database.dacpac'
-        #AdditionalArguments: '/p:ExcludeObjectTypes=Users;Logins;RoleMembership;Permissions /p:ScriptDatabaseOptions=false /OutputPath:"$(Build.ArtifactStagingDirectory)"'
+        #AdditionalArguments: '/p:ExcludeObjectTypes=Users;Logins;RoleMembership;Permissions /p:ScriptDatabaseOptions=false'
         AdditionalArguments: '/p:ScriptDatabaseOptions=false'
         TaskTimeoutInMinutes: 120
     - task: CopyFiles@2
       name: copySqlScript
       displayName: 'Copy SQL script'
       inputs:
-        Contents: "$(SqlDeploymentOutputFile)"
+        Contents: "$(generateSqlScript.SqlDeploymentOutputFile)"
         TargetFolder: '$(Build.ArtifactStagingDirectory)'
     - task: PublishPipelineArtifact@1
       displayName: 'Publish SQL script to artifacts'
