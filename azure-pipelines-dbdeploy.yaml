@@ -84,9 +84,8 @@ stages:
         targetPath: '$(Build.ArtifactStagingDirectory)'
         parallel: true
         artifactName: 'drop'
-- stage: deployStage
+- stage: deployDBStage
   displayName: 'Database'
-  dependsOn: dbStage
   jobs:
   - job: prepareDatabaseScript
     displayName: 'Prepare Database script'
@@ -156,9 +155,9 @@ stages:
             AdditionalArguments: '/p:BlockOnPossibleDataLoss=false'
             IpDetectionMethod: 'AutoDetect'
             TaskTimeoutInMinutes: 120
-- stage: appStage
+- stage: deployAppStage
   displayName: 'Application'
-  dependsOn: getDBAsApproval
+  dependsOn: dbStage
   jobs:    
   - job: deployApp
     displayName: 'Deploy App'
