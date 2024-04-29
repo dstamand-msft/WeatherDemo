@@ -91,6 +91,7 @@ stages:
   - job: prepareDatabaseScript
     displayName: 'Prepare Database script'
     steps:
+    - checkout: none
     - task: DownloadPipelineArtifact@2
       displayName: 'Download deployable artifacts'
       inputs:
@@ -108,8 +109,14 @@ stages:
         DeploymentAction: Script
         DacpacFile:  '$(Pipeline.Workspace)/drop/WeatherDemo.Database.dacpac'
         #AdditionalArguments: '/p:ExcludeObjectTypes=Users;Logins;RoleMembership;Permissions /p:ScriptDatabaseOptions=false /OutputPath:"$(Build.ArtifactStagingDirectory)"'
-        AdditionalArguments: '/p:ScriptDatabaseOptions=false /OutputPath:"$(Build.ArtifactStagingDirectory)"'
+        AdditionalArguments: '/p:ScriptDatabaseOptions=false'
         TaskTimeoutInMinutes: 120
+    - task: CopyFiles@2
+      name: copySqlScript
+      displayName: 'Copy SQL script'
+      inputs:
+        Contents: "$(SqlDeploymentOutputFile)"
+        TargetFolder: '$(Build.ArtifactStagingDirectory)'
     - task: PublishPipelineArtifact@1
       displayName: 'Publish SQL script to artifacts'
       inputs:
@@ -121,6 +128,7 @@ stages:
     pool: server
     dependsOn: prepareDatabaseScript
     steps:
+    - checkout: none
     - task: ManualValidation@0
       displayName: 'Validate SQL script'
       timeoutInMinutes: 1440 # task times out in 1 day
@@ -138,6 +146,7 @@ stages:
      runOnce:
       deploy:
         steps:
+        - checkout: none
         - task: SqlAzureDacpacDeployment@1
           displayName: 'Deploy DACPAC'
           inputs:
@@ -153,6 +162,7 @@ stages:
     displayName: 'Deploy App'
     dependsOn: getDBAsApproval
     steps:
+    - checkout: none
     - task: CmdLine@2
       name: deployApp
       displayName: 'Deploy App'
