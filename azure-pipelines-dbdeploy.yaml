@@ -138,7 +138,7 @@ stages:
         onTimeout: 'reject'
   - deployment: deployDb
     displayName: 'Deploy database'
-    environment: 'Prod'
+    environment: 'Prod-DB'
     strategy:
      runOnce:
       deploy:
