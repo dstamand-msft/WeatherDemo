@@ -122,12 +122,13 @@ stages:
       inputs:
         targetPath: '$(Build.ArtifactStagingDirectory)'
         parallel: true
-        artifactName: 'drop'
+        artifactName: 'drop-sqlscript'
   - job: getDBAsApproval
     displayName: 'Get DBAs validation approval'
     pool: server
     dependsOn: prepareDatabaseScript
     steps:
+    # Only users with queue build permission can act on a manual validation.
     - task: ManualValidation@0
       displayName: 'Validate SQL script'
       timeoutInMinutes: 1440 # task times out in 1 day
