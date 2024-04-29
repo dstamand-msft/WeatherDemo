@@ -96,7 +96,7 @@ stages:
       inputs:
         buildType: 'current'
         artifactName: 'drop'
-        targetPath: '$(System.DefaultWorkingDirectory)/drop'
+        targetPath: '$(Pipeline.Workspace)/drop'
     - task: SqlAzureDacpacDeployment@1
       name: generateSqlScript
       displayName: 'Generate SQL script'
@@ -106,7 +106,7 @@ stages:
         ServerName: $(DatabaseServerName)
         DatabaseName: $(DatabaseName)
         DeploymentAction: Script
-        DacpacFile:  '$(System.DefaultWorkingDirectory)/drop/WeatherDemo.Database.sql'
+        DacpacFile:  '$(Pipeline.Workspace)/drop/WeatherDemo.Database.dacpac'
         #AdditionalArguments: '/p:ExcludeObjectTypes=Users;Logins;RoleMembership;Permissions /p:ScriptDatabaseOptions=false /OutputPath:"$(Build.ArtifactStagingDirectory)"'
         AdditionalArguments: '/p:ScriptDatabaseOptions=false /OutputPath:"$(Build.ArtifactStagingDirectory)"'
         TaskTimeoutInMinutes: 120
@@ -116,8 +116,8 @@ stages:
         targetPath: '$(Build.ArtifactStagingDirectory)'
         parallel: true
         artifactName: 'drop'
-  - job: getValidation
-    displayName: 'Get validation'
+  - job: getDBAsApproval
+    displayName: 'Get DBAs validation approval'
     pool: server
     dependsOn: prepareDatabaseScript
     steps:
@@ -133,6 +133,7 @@ stages:
   - deployment: deployDb
     displayName: 'Deploy database'
     environment: 'Prod-DB'
+    dependsOn: getDBAsApproval
     strategy:
      runOnce:
       deploy:
@@ -144,12 +145,13 @@ stages:
             AuthenticationType: servicePrincipal
             ServerName: $(DatabaseServerName)
             DatabaseName: $(DatabaseName)
-            DacpacFile: '$(System.DefaultWorkingDirectory)/drop/WeatherDemo.Database.dacpac'
+            DacpacFile: '$(Pipeline.Workspace)/drop/WeatherDemo.Database.dacpac'
             AdditionalArguments: '/p:BlockOnPossibleDataLoss=false'
             IpDetectionMethod: 'AutoDetect'
             TaskTimeoutInMinutes: 120
   - job: deployApp
     displayName: 'Deploy App'
+    dependsOn: getDBAsApproval
     steps:
     - task: CmdLine@2
       name: deployApp
