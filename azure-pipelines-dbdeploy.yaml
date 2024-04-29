@@ -157,7 +157,7 @@ stages:
             TaskTimeoutInMinutes: 120
 - stage: deployAppStage
   displayName: 'Application'
-  dependsOn: dbStage
+  dependsOn: deployDBStage
   jobs:    
   - job: deployApp
     displayName: 'Deploy App'
