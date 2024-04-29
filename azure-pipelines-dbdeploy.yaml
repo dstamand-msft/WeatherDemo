@@ -139,6 +139,7 @@ stages:
   - deployment: deployDb
     displayName: 'Deploy database'
     environment: 'Prod-DB'
+    dependsOn: getDBAsApproval
     strategy:
      runOnce:
       deploy:
