@@ -85,8 +85,8 @@ stages:
         parallel: true
         artifactName: 'drop'
 - stage: deployStage
-  displayName: 'Deploy'
-  dependsOn: buildStage
+  displayName: 'Database'
+  dependsOn: dbStage
   jobs:
   - job: prepareDatabaseScript
     displayName: 'Prepare Database script'
@@ -108,7 +108,6 @@ stages:
         DatabaseName: $(DatabaseName)
         DeploymentAction: Script
         DacpacFile:  '$(Pipeline.Workspace)/drop/WeatherDemo.Database.dacpac'
-        #AdditionalArguments: '/p:ExcludeObjectTypes=Users;Logins;RoleMembership;Permissions /p:ScriptDatabaseOptions=false'
         AdditionalArguments: '/p:ScriptDatabaseOptions=false'
         TaskTimeoutInMinutes: 120
     - task: CopyFiles@2
@@ -140,8 +139,7 @@ stages:
         onTimeout: 'reject'
   - deployment: deployDb
     displayName: 'Deploy database'
-    environment: 'Prod-DB'
-    dependsOn: getDBAsApproval
+    environment: 'Prod'
     strategy:
      runOnce:
       deploy:
@@ -158,9 +156,13 @@ stages:
             AdditionalArguments: '/p:BlockOnPossibleDataLoss=false'
             IpDetectionMethod: 'AutoDetect'
             TaskTimeoutInMinutes: 120
+- stage: appStage
+  displayName: 'Application'
+  dependsOn: getDBAsApproval
+  jobs:    
   - job: deployApp
     displayName: 'Deploy App'
-    dependsOn: getDBAsApproval
+    dependsOn: deployDb
     steps:
     - checkout: none
     - task: CmdLine@2
