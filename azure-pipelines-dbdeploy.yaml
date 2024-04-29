@@ -48,13 +48,13 @@ stages:
         targetdir: '$(Pipeline.Workspace)/codecoverage'
         reporttypes: 'HtmlInline_AzurePipelines;Cobertura'
         verbosity: 'Verbose'
-    - task: PublishCodeCoverageResults@1
+    - task: PublishCodeCoverageResults@2
       displayName: 'Publish code coverage report'
       inputs:
-        codeCoverageTool: 'Cobertura'
+        #codeCoverageTool: 'Cobertura'
         summaryFileLocation: '$(Pipeline.Workspace)/codecoverage/Cobertura.xml'
         pathToSources: '$(Build.SourcesDirectory)/src'
-        reportDirectory: '$(Pipeline.Workspace)/codecoverage'
+        #reportDirectory: '$(Pipeline.Workspace)/codecoverage'
         failIfCoverageEmpty: true
       env:
         DISABLE_COVERAGE_AUTOGENERATE: 'true'
