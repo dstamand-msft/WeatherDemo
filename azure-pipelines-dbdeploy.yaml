@@ -161,7 +161,6 @@ stages:
   jobs:    
   - job: deployApp
     displayName: 'Deploy App'
-    dependsOn: deployDb
     steps:
     - checkout: none
     - task: CmdLine@2
