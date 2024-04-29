@@ -128,7 +128,6 @@ stages:
     pool: server
     dependsOn: prepareDatabaseScript
     steps:
-    - checkout: none
     - task: ManualValidation@0
       displayName: 'Validate SQL script'
       timeoutInMinutes: 1440 # task times out in 1 day
