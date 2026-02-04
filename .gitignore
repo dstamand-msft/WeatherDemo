@@ -477,4 +477,4 @@ $RECYCLE.BIN/
 *.lnk
 
 # environment focused app settings
-appsetting.*.json
+appsettings.*.json
