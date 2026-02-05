@@ -130,6 +130,6 @@
     </Build>
   </ItemGroup>
   <ItemGroup>
-    <RefactorLog Include="WeatherDemo.Database.refactorlog" />
+    <None Include="README.md" />
   </ItemGroup>
 </Project>
